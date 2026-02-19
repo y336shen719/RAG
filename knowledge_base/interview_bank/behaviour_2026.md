@@ -6,7 +6,7 @@ priority: medium
 last_updated: 2026-02
 ---
 
-**[Self-introduction/ please tell me about yourself?]{.underline}**
+**[Self-introduction/ please tell me about yourself?]**
 
 My name is Yiming Shen, you can call me Ryan. Thanks for having me
 today.
@@ -39,9 +39,9 @@ So, my academic background, practical work experience and personal
 properties, I believe they all help me become qualified with this
 position.
 
-**[Work Experience:]{.underline}**
+**[Work Experience:]**
 
-1.  [CIBC]{.underline}
+1.  [CIBC]
 
 During my co-op at CIBC, the team I worked with is End Point Print and
 Digital Output, which is responsible for building and running the
@@ -82,7 +82,7 @@ to make sure most of the heavy data work were did in SQL and Power BI
 only read a smaller processed dataset. As a result, the dashboards had a
 fast and stable weekly refresh performance.
 
-2.  [Kaggle Competition: S&P 500 Stock Price Predication]{.underline}
+2.  [Kaggle Competition: S&P 500 Stock Price Predication]
 
 S: One project I am proud of is an ML pipeline Kaggle competition I
 attended. It is about S&P 500 stock price forecasting.
@@ -112,7 +112,7 @@ can I do, I found that Hurst Exponent Analysis
 
 > \[[Hurst exponent analysis checks past data to tell whether a time
 > series tends to keep trending, go back to its average, or just a
-> random walk]{.underline}\]
+> random walk]]
 >
 > is very common and useful in time series data, so I self-learned what
 > is Hurst exponent analysis, why we need that. Finally, I have a very
@@ -136,7 +136,7 @@ can I do, I found that Hurst Exponent Analysis
 > data leakage. And then the validation score became more conservative
 > but make sense.
 
-3.  [Horizn Studio]{.underline}
+3.  [Horizn Studio]
 
 Horizn is a fintech company, which built a platform to help its clients,
 different financial institutions, to educate the customers and promote
