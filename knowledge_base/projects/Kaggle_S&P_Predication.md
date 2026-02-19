@@ -1,3 +1,11 @@
+---
+title: Kaggle S&P Predication
+category: project
+tags: [XGBoost, EDA, Feature Engineering, time series, data leakage, wavelet decomposition, hurst exponent analysis]
+priority: high
+last_updated: 2026-02
+---
+
 Introduction This project is built around the ongoing Kaggle competition
 "Hull Tactical -- Market Prediction". The challenge asks participants to
 predict the next-day return of the S&P 500 index and to convert those
