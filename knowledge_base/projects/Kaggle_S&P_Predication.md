@@ -1,187 +1,178 @@
 ---
-title: Kaggle S&P Predication
+title: Kaggle S&P Prediction (Hull Tactical — Market Prediction)
 category: project
-tags: [XGBoost, EDA, Feature Engineering, time series, data leakage, wavelet decomposition, hurst exponent analysis]
+tags: [xgboost, lightgbm, eda, feature-engineering, time-series, leakage-control, wavelet, hurst]
 priority: high
 last_updated: 2026-02
 ---
 
-Introduction This project is built around the ongoing Kaggle competition
-"Hull Tactical -- Market Prediction". The challenge asks participants to
-predict the next-day return of the S&P 500 index and to convert those
-predictions into a trading strategy that seeks positive excess returns
-while controlling portfolio risk. The main training file, train.csv,
-contains several decades of daily U.S. equity-market data. Each row
-corresponds to a trading day identified by a 'date_id', with hundreds of
-anonymized features grouped into families such as market-dynamics (M),
-macro- economic (E), interest-rate (I), valuation (P), volatility (V),
-sentiment (S), momentum (MOM), and binary dummy variables (D). The
-prediction target is 'forward_returns', defined as the return from
-buying the S&P 500 and selling it one day later;\
-The file also includes the contemporaneous federal funds rate as a proxy
-for the risk- free rate.
+# Kaggle S&P Prediction (Hull Tactical — Market Prediction)
 
-The competition uses a custom risk-adjusted performance metric,
-implemented in baseline notebooks as an adjusted-Sharpe-style score
-computed from a simulated daily trading strategy, and classified on
-Kaggle as a "custom metric."
+## 1. Introduction
+This project is built around the ongoing Kaggle competition **“Hull Tactical — Market Prediction”**. The challenge asks participants to predict the **next-day return** of the S&P 500 index and convert those predictions into a **trading strategy** that seeks positive excess returns while controlling portfolio risk.
 
-The competition runs in two phases: a model-training phase using
-historical data, and a forecasting phase using future, real-time data.
-After submissions close, a forecasting phase begins in which a second
-set of roughly 180 trading days of fresh S&P 500 data is collected after
-the deadline; final rankings will be based on models' performance on
-this out-of-sample period.
+The main training file `train.csv` contains several decades of daily U.S. equity-market data. Each row corresponds to a trading day identified by a `date_id`, with **hundreds of anonymized features** grouped into families such as:
 
-However, the competition's 180-day live test window will finish after
-the CS680 course deadline, so the official private leaderboard will not
-be available when this project is due. To obtain an immediately
-observable, out-of-sample benchmark for the final project, we therefore
-reserve the last 180 trading days of the provided train.csv as our
-project test set, and use all earlier dates exclusively for training.
+- Market-dynamics (M)  
+- Macro-economic (E)  
+- Interest-rate (I)  
+- Valuation (P)  
+- Volatility (V)  
+- Sentiment (S)  
+- Momentum (MOM)  
+- Dummy variables (D)
 
-Background Section Tree-based model trial: This part of the project
-focuses on tree-based models for predicting daily S&P 500 excess
-returns. Instead of predicting raw forward returns, we predict the sign
-(negative/positive) of the market forward excess return, which is equal
-to raw forward return minus risk free rate, and later convert the
-predicted probability into a 0--2 long exposure trading strategy.
-Firstly, we conduct exploratory data analysis to gain deeper insights.
-The target 'market_forward_excess_returns' has mean close to zero and
-standard deviation around 1% per day, with clear non-normal tails.
-Linear correlations between the target and the 90+ input features are
-all very small (\|ρ\| ≤ 0.07), suggesting that any usable signal must be
-non-linear and very weak. A Hurst R/S analysis further supports this
-view: the cumulative excess return has a Hurst exponent of ≈1.01,
-indicating persistent long-term trend, while the raw excess returns have
-H≈0.54, close to uncorrelated noise. Based on the results above, a
-moderately regularized tree model with time-series feature engineering
-might be a good option to capture non-linear signal without overfitting
-noise.\
-We use LightGBM and XGBoost, because both are gradient-boosted trees
-with strong regularization controls (e.g. both L1/L2 penalties, elastic
-net). We also try two ensemble method: stacking and blending.\
-We choose log loss as our principal model selection metrics, since it is
-exactly the training objective of our tree models (binary logistic
-loss). We also treat AUC as a secondary diagnostic to evaluate models'
-predicting accuracy. The adjusted Sharpe ratio is the ultimate
-evaluation metric, since it is the competition's official metric.
+The prediction target is `forward_returns`, defined as the return from buying the S&P 500 and selling it one day later. The file also includes the contemporaneous **federal funds rate** as a proxy for the **risk-free rate**.
 
-Experiment Section All feature engineering is implemented inside a
-scikit-learn Pipeline to ensure that the same transformations are
-applied consistently within each time-series cross-validation fold and
-in the final training. Firstly, we drop columns with more than 50%
-missing values, which improves stability and avoids heavy imputation on
-very sparse signals. Secondly, we create lagging & rolling features
-based on our target 'market_forward_excess_returns'. We use lagging
-features with lag 1\~5 to capture short-term momentum or mean-reversion
-over one trading week. Rolling means and standard deviations over
-windows of 5, 21, and 63 days, roughly corresponding to weekly, monthly,
-and quarterly horizons are used to summarize local trend and volatility
-regimes at different time scales. Thirdly, we apply wavelet
-decomposition to our target and decompose it into 3 components:
-low-frequency sub-band for long- term trend, mid-frequency sub-band for
-medium-term cycles, low-frequency sub-band for short-term noise. From
-these components we derive multi-scale features such as variances and
-energy shares, which quantify how much of the recent activity is trend-
-driven versus noise-driven; rolling slope and means, which represent
-medium-term direction and local reference levels, and so on. These are
-all relatively standard multi- scale features in the financial
-time-series. In addition, we made several design efforts to avoid data
-leakage when constructing wavelet-based features. We implement causal
-wavelet filtering instead of standard DWT/MODWT with symmetric padding
-and centered convolutions. All features are computed using
-backward-looking rolling windows. After all lagging, rolling, and
-wavelet features are created, we fill any remaining missing values with
-a constant 0.
+## 2. Evaluation Metric and Competition Setup
+The competition uses a **custom risk-adjusted performance metric**, implemented in baseline notebooks as an **adjusted-Sharpe-style score** computed from a simulated daily trading strategy (Kaggle “custom metric”).
 
-As discussed in background section, we consider two tree-based
-probabilistic classifiers, LightGBM and XGBoost, both trained on the
-same preprocessed feature set. Hyperparameters are tuned via
-RandomizedSearchCV with TimeSeriesSplit in 5 folds and scoring metric
-negative log loss. To prevent overfitting, our search spaces focus on
-relatively shallow trees, moderate learning rates, and non-zero L1/L2
-regularization.
+The competition runs in two phases:
+1. **Model-training phase** using historical data  
+2. **Forecasting phase** using future, real-time data
 
-After fixing the optimal hyperparameters for LGB and XGB, we compute
-out-of-fold (OOF) predictions on the train set using TimeSeriesSplit
-again. For each fold, the model is trained on past data and predicts the
-next validation block; concatenating these predictions yields OOF
-probability vectors, which are 𝑝𝐿𝐺𝐵 and 𝑝𝑋𝐺𝐵. Then two ensemble methods
-are tried. For blending, we perform a grid search over weights 𝑤 ∈{0.0,
-0.1, ⋯, 1.0} for 𝑝𝐵𝑙𝑒𝑛𝑑= 𝑤∙𝑝𝐿𝐺𝐵+ (1 −𝑤) ∙𝑝𝑋𝐺𝐵 and compute OOF log loss &
-AUC for each weight. The optimal weight is selected according to the
-lowest OOF log loss. For stacking, we stack the OOF probabilities
-\[𝑝𝐿𝐺𝐵, 𝑝𝑋𝐺𝐵\] into a 2-dimension meta-feature input and fit a logistic
-regression meta-model. A second level of TimeSeriesSplit on the OOF
-region is used to tune the regularization strength 𝐶 by OOF log loss.
+After submissions close, a forecasting phase begins in which a second set of roughly **180 trading days** of fresh S&P 500 data is collected after the deadline. Final rankings will be based on models’ performance on this out-of-sample period.
 
-As mentioned above, our final goal is to convert model's predicted
-probability into a 0--2 exposure trading strategy and maximize the
-adjusted Sharpe ratio. Therefore, a position function is defined as
-follows to map predicted probabilities into daily leverage: 𝑝𝑜𝑠(𝑝) =
-𝑐𝑙𝑖𝑝(𝑓𝑙𝑜𝑜𝑟+ 𝑠𝑙𝑜𝑝𝑒∙max(𝑝−𝑐𝑒𝑛𝑡𝑒𝑟, 0) , 𝑓𝑙𝑜𝑜𝑟, 𝑚𝑎𝑥_𝑝𝑜𝑠). The function has
-four tunable parameters: 𝑓𝑙𝑜𝑜𝑟, minimum exposure; 𝑐𝑒𝑛𝑡𝑒𝑟, probability
-level above which we start increasing exposure; 𝑠𝑙𝑜𝑝𝑒, how aggressively
-exposure grows with confidence; 𝑚𝑎𝑥_𝑝𝑜𝑠, maximum allowed leverage. For
-each of the four model variants (LGB, XGB, blend, stack), we tune
-parameters on the OOF region by grid search, maximizing the OOF adjusted
-Sharpe, and then generate four position functions.
+**Project constraint:** the live 180-day test window will finish after the CS680 course deadline, so the official private leaderboard will not be available when this project is due.  
+**Our solution:** we reserve the last **180 trading days** of the provided `train.csv` as the project test set, and use all earlier dates exclusively for training.
 
-Results Section Using the tuned models and position functions, we refit
-each pipeline on the entire training period and generate predicted
-probabilities, and strategy returns on the 180- day test set. The
-resulting log loss, AUC, and adjusted Sharpe for LGB, XGB, blend, and
-stack are summarized as follows:
+---
 
-Model Test log loss AUC Adjusted Sharpe\
-LGB + position 0.6895 0.5591 --0.24\
-XGB + position 0.6896 0.5440 0.30\
-Blend (best w = 0) + position 0.6896 0.5440 0.30 since best w = 0,
-equivalent pure XGB Stack (best C = 0.1) + position 0.6909 0.5584 0.22
+## 3. Background: Tree-Based Modeling Strategy
 
-All models achieve test log loss only slightly better than the
-random-guess baseline (\~0.693) and AUC in the narrow range 0.54--0.56,
-indicating that daily excess returns are extremely hard to predict and
-any probabilistic edge over randomness is very weak. After mapping
-probabilities into positions, the adjusted Sharpe on the test set is
-negative for LGB, modestly positive (\~0.30) for XGB and its blend
-variant (which effectively reduces to pure XGB), and smaller (\~0.22)
-for stacking. Hence XGBoost + position is the best of the four, but
-still delivers only limited improvement in risk- adjusted performance.
-Then we visualize the best strategy, XGBoost + position, on the 180-day
-test period by two plots. The first plot is 'Cumulative total return of
-the market vs. the best strategy'. The market's cumulative return
-increases from 1.00 to about 1.03, while the strategy ends around 1.035.
-More importantly, during drawdown episodes where the market falls
-sharply, the strategy's equity curve is noticeably smoother and avoids
-the deepest losses.
+### 3.1 Prediction Target and Trading Objective
+This work focuses on tree-based models for predicting daily S&P 500 **excess returns**. Instead of predicting raw forward returns, we predict the **sign (negative/positive)** of the market forward excess return:
 
-Another plot is 'Monthly Return Bar Chart'. The strategy's returns have
-much lower standard deviation than the market and a higher fraction of
-small positive days, which indicates that the strategy "wins small but
-often" while avoiding large drawdowns.
+- `market_forward_excess_returns = forward_returns - risk_free_rate`
 
-Conclusion Section Our XGB + position strategy delivers robust,
-conservative but positive risk-adjusted performance and serving as a
-reasonably rigorous quant modeling. In our current setup, model
-hyperparameters, ensemble parameters and position function parameters
-are tuned using time-series CV and OOF predictions on the training
-period. Repeatedly selecting the best on the same OOF data can introduce
-mild optimistic bias. It might be improved by use a rolling-window
-nested time-series CV, where in each window we re-run hyperparameter
-search and ensemble selection and evaluate only on the forward "future"
-slice. Sliding this window over time would yield a more robust estimate
-of performance, at the cost of much higher computational and
-implementation complexity. Besides, all binary classifiers we built very
-slightly outperform random guessing on test data. It aligns perfectly
-with the Hurst analysis in our EDA, where raw excess returns behave
-essentially like uncorrelated noise with very weak predictability. While
-the position function we designed is likely to contribute more to
-improving the adjusted Sharpe ratio. We therefore do not expect that
-swapping in other model families would dramatically improve performance.
-In fact, these findings suggest that a model-free approach, a purely
-rule-based trading strategy with no learnable parameters, might perform
-better than our current model- based pipeline. However, this goes beyond
-the scope of CS680 and even machine learning, so we leave that as an
-open direction rather than exploring it here.
+We then convert the predicted probability into a **0–2 long exposure** trading strategy.
+
+### 3.2 EDA Findings
+Key observations:
+- The target `market_forward_excess_returns` has **mean close to zero** and **standard deviation around ~1% per day**, with **non-normal tails**.
+- Linear correlations between the target and the 90+ input features are all very small (**|ρ| ≤ 0.07**), suggesting that any usable signal is **weak and likely non-linear**.
+
+We also ran a Hurst R/S analysis:
+- The **cumulative** excess return shows a Hurst exponent of **≈ 1.01**, indicating persistent long-term trend.
+- The **raw** excess returns have **H ≈ 0.54**, close to uncorrelated noise.
+
+**Implication:** a moderately regularized tree model with time-series feature engineering might capture weak non-linear signal while reducing overfitting.
+
+### 3.3 Model Families and Metrics
+We use **LightGBM** and **XGBoost** because both are gradient-boosted trees with strong regularization controls (e.g., L1/L2 penalties). We also try two ensemble approaches: **blending** and **stacking**.
+
+We select models using:
+- **Primary metric:** log loss (aligned with the training objective: binary logistic loss)
+- **Secondary diagnostic:** AUC
+- **Ultimate objective:** adjusted Sharpe ratio (competition metric)
+
+---
+
+## 4. Methods: Feature Engineering, Leakage Control, and Training
+
+### 4.1 Pipeline Design
+All feature engineering is implemented inside a **scikit-learn Pipeline** to ensure transformations are applied consistently within each time-series cross-validation fold and in the final training.
+
+### 4.2 Preprocessing and Time-Series Features
+Steps:
+1. **Drop sparse columns:** remove features with >50% missing values to improve stability and avoid heavy imputation on very sparse signals.
+2. **Lag and rolling features** based on `market_forward_excess_returns`:
+   - Lags (1–5 days) to capture short-term momentum or mean-reversion (roughly one trading week)
+   - Rolling means and standard deviations over 5, 21, and 63 days (weekly, monthly, quarterly) to summarize trend and volatility regimes
+3. **Fill remaining missing values** with a constant 0 after feature creation.
+
+### 4.3 Wavelet Decomposition Features (with Leakage-Aware Design)
+We apply wavelet decomposition to the target and decompose it into 3 components:
+- **Low-frequency** sub-band: long-term trend  
+- **Mid-frequency** sub-band: medium-term cycles  
+- **High-frequency** sub-band: short-term noise  
+
+From these components we derive multi-scale features such as:
+- Variances and energy shares (trend-driven vs noise-driven activity)
+- Rolling slopes and rolling means (medium-term direction and local reference levels)
+
+**Leakage control:** we avoid standard DWT/MODWT setups that rely on symmetric padding and centered convolutions. We implement **causal wavelet filtering**, and compute features using **backward-looking rolling windows** only.
+
+---
+
+## 5. Model Training and Ensembling
+
+### 5.1 Base Models and Hyperparameter Tuning
+We consider two probabilistic classifiers: **LightGBM** and **XGBoost**, trained on the same feature set.
+
+Hyperparameters are tuned via:
+- `RandomizedSearchCV`
+- `TimeSeriesSplit` (5 folds)
+- scoring metric: negative log loss
+
+Search spaces prioritize:
+- relatively shallow trees
+- moderate learning rates
+- non-zero L1/L2 regularization
+
+### 5.2 OOF Predictions for Blending and Stacking
+After selecting hyperparameters, we compute **out-of-fold (OOF) predictions** using `TimeSeriesSplit` again. Each fold trains on past data and predicts the next validation block; concatenated predictions yield OOF probability vectors:
+
+- \( p_{LGB} \)
+- \( p_{XGB} \)
+
+Ensemble methods:
+- **Blending:** grid search weights \( w \in \{0.0, 0.1, \dots, 1.0\} \) for  
+  \( p_{blend} = w \cdot p_{LGB} + (1-w)\cdot p_{XGB} \)  
+  choose weight by lowest OOF log loss.
+- **Stacking:** use \([p_{LGB}, p_{XGB}]\) as 2D meta-features and train a logistic regression meta-model.  
+  Tune regularization strength \( C \) by OOF log loss using a second-level time-series split.
+
+---
+
+## 6. Trading Strategy: Mapping Probability to Position
+Our final goal is to convert predicted probabilities into a **0–2 exposure** trading strategy and maximize adjusted Sharpe.
+
+We define a position function that maps predicted probability \(p\) into daily leverage:
+
+- exposure increases only when \(p\) exceeds a threshold (“center”)
+- exposure is clipped between a minimum floor and a maximum leverage
+
+The function has four tunable parameters:
+- **floor:** minimum exposure  
+- **center:** probability threshold above which exposure increases  
+- **slope:** aggressiveness of exposure growth  
+- **max_pos:** maximum allowed leverage  
+
+For each of the four model variants (**LGB**, **XGB**, **blend**, **stack**), we tune the position parameters on the OOF region by grid search, maximizing OOF adjusted Sharpe.
+
+---
+
+## 7. Results (180-Day Held-Out Test Set)
+
+### 7.1 Summary Metrics
+Using the tuned models and position functions, we refit each pipeline on the full training period and evaluate on the 180-day test set:
+
+| Model | Test log loss | AUC | Adjusted Sharpe |
+|------|---------------:|----:|----------------:|
+| LGB + position | 0.6895 | 0.5591 | -0.24 |
+| XGB + position | 0.6896 | 0.5440 | 0.30 |
+| Blend (best w = 0) + position | 0.6896 | 0.5440 | 0.30 |
+| Stack (best C = 0.1) + position | 0.6909 | 0.5584 | 0.22 |
+
+Notes:
+- All models achieve test log loss only slightly better than the random-guess baseline (~0.693).
+- AUC lies in a narrow range (0.54–0.56), indicating that daily excess returns are extremely hard to predict and any edge is weak.
+- After mapping probabilities into positions, **XGBoost + position** is best among the four, with modestly positive adjusted Sharpe.
+
+### 7.2 Strategy Behavior (Qualitative)
+For the best strategy (**XGB + position**), we visualize performance on the 180-day test period using:
+1. **Cumulative return comparison (market vs strategy):**  
+   The market increases from ~1.00 to ~1.03, while the strategy ends around ~1.035. During market drawdowns, the strategy equity curve appears smoother and avoids the deepest losses.
+2. **Monthly return bar chart:**  
+   The strategy has lower return volatility than the market and a higher fraction of small positive days—suggesting a “wins small but often” profile while avoiding large drawdowns.
+
+---
+
+## 8. Conclusion and Limitations
+Our XGB + position strategy delivers **conservative but positive** risk-adjusted performance, serving as a reasonably rigorous quant modeling pipeline. However, there are limitations:
+
+- **Optimistic bias risk:** hyperparameters, ensemble parameters, and position parameters are all tuned using time-series CV and OOF predictions on the training period. Repeatedly selecting best variants on the same OOF region can introduce mild optimistic bias.
+- **Potential improvement:** a rolling-window **nested** time-series CV could provide a more robust estimate of performance, but would substantially increase compute and implementation complexity.
+- **Fundamental predictability constraint:** raw daily excess returns behave close to noise (consistent with Hurst ≈ 0.54). Therefore, we do not expect dramatically better performance simply by switching model families.
+- **Future direction:** a purely rule-based strategy (no learnable parameters) might outperform our model-based pipeline, but exploring this is beyond the scope of CS680.
