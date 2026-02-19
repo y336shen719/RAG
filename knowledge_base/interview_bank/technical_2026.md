@@ -1,6 +1,6 @@
 ---
-title: Technical Interview Answers
-category: interview
+title: technical_2026
+category: interview_bank
 tags: [big data, p-value, teamwork, data cleaning, central limit theorem]
 priority: medium
 last_updated: 2026-02
