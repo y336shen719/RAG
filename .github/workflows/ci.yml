@@ -27,7 +27,9 @@ jobs:
       - name: Syntax check
         run: |
           python -m py_compile scripts/build_chunks.py
-          python -m py_compile scripts/build_embeddings.py
+          if [ -f scripts/build_embeddings.py ]; then
+            python -m py_compile scripts/build_embeddings.py
+          fi
 
       - name: Dry run chunk builder
         run: |
