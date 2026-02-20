@@ -1,4 +1,4 @@
-import OS # used to walk through files
+import os # used to walk through files
 import re # used for regular expression
 import json # used to convert md into json
 from pathlib import Path
