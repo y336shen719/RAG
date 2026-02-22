@@ -13,7 +13,7 @@ MODEL = "text-embedding-3-small"
 
 TOP_K = 3
 THRESHOLD = 0.4
-CANDIDATE_K = 10  # retrieve more first, then filter
+CANDIDATE_K = 10  # retrieve 10 first, then filter down to only 3
 
 # Initialize OpenAI client
 api_key = os.getenv("OPENAI_API_KEY")
@@ -42,50 +42,37 @@ def embed_query(query: str) -> np.ndarray:
 
     # Normalize for cosine similarity
     faiss.normalize_L2(vector)
-
     return vector
 
 # Retrieval core
 def retrieve(query: str, index, chunks):
-
-    # ----------------------------
-    # Query Classification
-    # ----------------------------
+    # Classify (routing decision)
     category, confidence, method = classify_query(query)
 
     print("\nRouting decision:", category)
     print("Routing method:", method)
-    print("Routing confidence:", round(confidence, 4))
+    print("Routing confidence:", round(float(confidence), 4))
 
-    # ----------------------------
     # Embed query
-    # ----------------------------
     query_vector = embed_query(query)
 
-    # ----------------------------
-    # Initial retrieval
-    # ----------------------------
+    # Retrieve candidates
     scores, indices = index.search(query_vector, CANDIDATE_K)
 
     results = []
-
     for score, idx in zip(scores[0], indices[0]):
-
         if idx == -1:
             continue
 
-        metadata = chunks[idx].get("metadata", {})
+        chunk = chunks[idx]
+        metadata = chunk.get("metadata", {})
         source_type = metadata.get("source_type", None)
 
-        # ----------------------------
-        # Metadata filtering (Routing)
-        # ----------------------------
-        if category and source_type != category:
+        # Metadata filtering (routing)
+        if category is not None and source_type != category:
             continue
 
-        # ----------------------------
-        # Threshold filtering (OOD control)
-        # ----------------------------
+        # Threshold filtering (OOD/refusal)
         if float(score) < THRESHOLD:
             continue
 
@@ -93,8 +80,8 @@ def retrieve(query: str, index, chunks):
             "rank": len(results) + 1,
             "score": float(score),
             "metadata": metadata,
-            "preview": chunks[idx]["content"][:500],
-            "chunk_id": idx
+            "chunk_id": int(idx),
+            "preview": chunk.get("content", "")[:500],
         })
 
         if len(results) >= TOP_K:
@@ -102,14 +89,10 @@ def retrieve(query: str, index, chunks):
 
     return results
 
-# ----------------------------
 # Main
-# ----------------------------
 def main():
-
     if len(sys.argv) < 2:
-        print("Usage:")
-        print("python scripts/retrieval_strategy.py \"your query\"")
+        print("Usage: python scripts/retrieval_strategy.py \"your query\"")
         sys.exit(1)
 
     query = sys.argv[1]
@@ -139,7 +122,6 @@ def main():
         print("Preview:")
         print(r["preview"])
         print("-" * 80)
-
 
 if __name__ == "__main__":
     main()
