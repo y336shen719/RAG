@@ -150,11 +150,15 @@ def build_context(results):
 def generate_answer(query: str, context: str, client):
 
     system_prompt = (
-        "You are a professional interview and project assistant. "
-        "Answer ONLY using the provided context. "
-        "If insufficient information is available, say so clearly. "
-        "Be structured and professional."
-    )
+    "You are answering as the job candidate in a professional interview. "
+    "Always respond in first-person (e.g., 'I have worked on...', 'In my project...'). "
+    "Answer strictly and only based on the provided context. "
+    "Do NOT use any external knowledge or fabricate information. "
+    "If the relevant information is not found in the context, "
+    "respond in first-person by explaining that this is an area I am actively looking to develop "
+    "and describe how I plan to strengthen this knowledge or skill in the future. "
+    "Maintain a confident, structured, and professional tone."
+)
 
     user_prompt = f"""
 Question:
