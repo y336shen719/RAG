@@ -1,10 +1,19 @@
 import streamlit as st
-import os
 from scripts.rag_core import answer_query
 
-st.set_page_config(page_title="Ryan Shen | Private RAG Assistant", page_icon="🤖")
+# ---------------------------------------------------
+# Page Config
+# ---------------------------------------------------
+st.set_page_config(
+    page_title="Ryan Shen | Private RAG Assistant",
+    page_icon="🤖",
+    layout="centered"
+)
 
-st.title("RAG Interview & Project Assistant")
+# ---------------------------------------------------
+# Header
+# ---------------------------------------------------
+st.title("🤖RAG Interview & Project Assistant🤖")
 
 st.markdown(
     """
@@ -17,37 +26,59 @@ Feel free to ask questions about my background, technical projects, or work expe
 
 st.divider()
 
+# ---------------------------------------------------
 # Password Gate
+# ---------------------------------------------------
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    pw = st.text_input("Enter password", type="password")
-    if pw:
-        if pw == st.secrets["APP_PASSWORD"]:
+
+    st.subheader("🔐 Private Access")
+
+    password = st.text_input("Enter password", type="password")
+
+    if password:
+        if password == st.secrets["APP_PASSWORD"]:
             st.session_state.authenticated = True
             st.success("Access granted ✔")
+            st.rerun()   # 🔥 Important: refresh app
         else:
             st.error("Incorrect password.")
+
     st.stop()
 
-# UI
-query = st.text_input("Ask your question here:")
+# ---------------------------------------------------
+# Logout Button (Sidebar)
+# ---------------------------------------------------
+with st.sidebar:
+    st.markdown("### Session Control")
+    if st.button("Logout"):
+        st.session_state.authenticated = False
+        st.rerun()
+
+# ---------------------------------------------------
+# Main Query UI
+# ---------------------------------------------------
+st.subheader("Ask a Question")
+
+query = st.text_input("Enter your question:")
 
 col1, col2 = st.columns([1, 3])
-with col1:
-    run_btn = st.button("Generate Answer")
 
-if run_btn:
+with col1:
+    generate = st.button("Generate Answer")
+
+if generate:
+
     if not query.strip():
         st.warning("Please enter a question.")
     else:
         with st.spinner("Generating answer..."):
-            # Inject API key into environment
-            os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 
             answer = answer_query(query)
 
+        st.divider()
         st.markdown("### Answer")
         st.write(answer)
 
