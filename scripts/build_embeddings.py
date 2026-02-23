@@ -29,8 +29,7 @@ def load_chunks():
     with open(CHUNK_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
-
-# Generate embeddings
+# Generate embeddings (batched)
 def generate_embeddings(chunks, client):
     texts = [chunk["content"] for chunk in chunks]
     vectors = []
