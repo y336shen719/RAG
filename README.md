@@ -40,11 +40,19 @@ pipeline designed to answer questions about:
 
 -   Fallback Global Search (if empty)
 
-5. Context Builder
+5. Context Builder （prompt engineering)
 
-6. LLM Generation
+6. Answer Generation by LLM
 
-7. Answer
+7. Other
+
+-  Knowledge Base Construction
+
+-  Metadata Design
+
+-  Chunking Strategy
+
+-  Embedding
 
 ------------------------------------------------------------------------
 
