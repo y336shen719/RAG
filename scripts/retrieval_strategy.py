@@ -12,7 +12,7 @@ INDEX_FILE = "vector_store/faiss.index"
 MODEL = "text-embedding-3-small"
 
 TOP_K = 3
-THRESHOLD = 0.4
+THRESHOLD = 0.5
 CANDIDATE_K = 10  # retrieve 10 first, then filter down to only 3
 
 # Initialize OpenAI client
