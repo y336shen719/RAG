@@ -6,11 +6,17 @@ from openai import OpenAI
 MODEL = "text-embedding-3-small"
 
 # Lazy OpenAI client
+_client = None
+
 def get_client():
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("OPENAI_API_KEY not set.")
-    return OpenAI(api_key=api_key)
+    global _client
+    if _client is None:
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY not set.")
+        _client = OpenAI(api_key=api_key)
+    return _client
+
 
 # Rule-based routing
 def rule_based_router(query: str):
@@ -48,6 +54,7 @@ def rule_based_router(query: str):
 
     return None, 0.0
 
+
 # Semantic Routing (with caching)
 CATEGORY_DESCRIPTIONS = {
     "interview": "behavioral interview questions about teamwork, conflict, leadership, failure, communication",
@@ -57,6 +64,7 @@ CATEGORY_DESCRIPTIONS = {
 
 # Global cache
 _category_vectors_cache = None
+
 
 def embed_text(text: str) -> np.ndarray:
     client = get_client()
@@ -105,6 +113,7 @@ def semantic_router(query: str):
             best_category = category
 
     return best_category, best_score
+
 
 # Main classifier
 def classify_query(query: str):
