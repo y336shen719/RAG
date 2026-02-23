@@ -9,7 +9,7 @@ pipeline designed to answer questions about:
 
 ------------------------------------------------------------------------
 
-System Architecture Overview
+## System Architecture Overview
 
 User Query | v [Password Gate (Streamlit)] | v
 rag_core.answer_query(query) | v query_classifier.classify_query(query)
@@ -21,7 +21,7 @@ Generation | v Final Answer
 
 ------------------------------------------------------------------------
 
-1) Knowledge Base Organization
+###1) Knowledge Base Organization
 
 The knowledge base is structured into three folders:
 
@@ -36,7 +36,7 @@ avoid contaminating embeddings with non-semantic information.
 
 ------------------------------------------------------------------------
 
-2) Chunking (build_chunks.py)
+###2) Chunking (build_chunks.py)
 
 Frontmatter Cleaning: Removes metadata blocks so irrelevant YAML does
 not affect embedding quality.
@@ -51,7 +51,7 @@ Output: chunks.json (each chunk contains content + metadata)
 
 ------------------------------------------------------------------------
 
-3) Embedding + Vector Store (build_embeddings.py)
+###3) Embedding + Vector Store (build_embeddings.py)
 
 Each chunk is embedded using an OpenAI embedding model.
 
@@ -63,14 +63,14 @@ search index)
 
 ------------------------------------------------------------------------
 
-4) Retrieval Testing (Early Stage)
+###4) Retrieval Testing (Early Stage)
 
 retrieval_test.py was used to: - Input query - Specify top_k - Print
 similarity scores - Evaluate retrieval quality
 
 ------------------------------------------------------------------------
 
-5) Query Classifier (query_classifier.py)
+###5) Query Classifier (query_classifier.py)
 
 Routing Layer determines category:
 
@@ -85,7 +85,7 @@ calls.
 
 ------------------------------------------------------------------------
 
-6) Retrieval Strategy (rag_core.py)
+###6) Retrieval Strategy (rag_core.py)
 
 Two-Stage Strategy:
 
@@ -97,7 +97,7 @@ threshold - Return top_k
 
 ------------------------------------------------------------------------
 
-7) RAG Generation
+###7) RAG Generation
 
 rag_core.py: retrieve → build_context → generate_answer
 
@@ -109,7 +109,7 @@ answers.
 
 ------------------------------------------------------------------------
 
-Final System Features
+##Final System Features
 
 -   Vector semantic retrieval
 -   Metadata routing
@@ -124,7 +124,7 @@ Final System Features
 
 ------------------------------------------------------------------------
 
-Conclusion
+##Conclusion
 
 This project implements a Classic RAG System. It is modular and can be
 extended into a full Agent architecture.
