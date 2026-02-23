@@ -84,6 +84,9 @@ Output: chunks.json (each chunk contains content + metadata)
 
 Each chunk is embedded using an OpenAI embedding model.
 
+> [!NOTE]
+> OpenAI text-embedding-3-small used
+
 Steps: - Generate embeddings - Convert to float32 - Apply L2
 normalization - Store in FAISS using IndexFlatIP
 
@@ -135,6 +138,9 @@ artifact upload.
 
 app.py: Streamlit password-protected interface. Displays generated
 answers.
+
+> [!NOTE]
+> OpenAI gpt-4o-mini used
 
 ------------------------------------------------------------------------
 
