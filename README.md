@@ -22,31 +22,29 @@ pipeline designed to answer questions about:
 
 1. User Query
 
-2. Password Gate
-
-3. Query Classifier
+2. Query Classifier
 
 -   Rule-based (keyword match)
 
 -   Semantic (embedding similarity)
 
-4. FAISS Vector Search
+3. FAISS Vector Search
 
 -   FLAT as index method
 
 -   IP (Inner Product) as similarity search method
 
-6. Two-Stage Retrieval
+4. Two-Stage Retrieval
 
 -   Metadata Filter + Threshold + Top-K
 
 -   Fallback Global Search (if empty)
 
-6. Context Builder
+5. Context Builder
 
-7. LLM Generation
+6. LLM Generation
 
-8. Answer
+7. Answer
 
 ------------------------------------------------------------------------
 
