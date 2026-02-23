@@ -133,14 +133,14 @@ threshold - Return top_k
 
 rag_core.py: retrieve → build_context → generate_answer
 
+> [!NOTE]
+> OpenAI gpt-4o-mini used
+
 rag_answer.py: Writes output to rag_answer.txt for GitHub Actions
 artifact upload.
 
 app.py: Streamlit password-protected interface. Displays generated
 answers.
-
-> [!NOTE]
-> OpenAI gpt-4o-mini used
 
 ------------------------------------------------------------------------
 
