@@ -1,4 +1,4 @@
-# RAG Interview & Project Pipeline
+# RAG Interview & Project System
 This project implements a full Retrieval-Augmented Generation (RAG)
 pipeline designed to answer questions about:
 
