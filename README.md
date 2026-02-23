@@ -11,25 +11,33 @@ pipeline designed to answer questions about:
 
 ## System Architecture Overview
 
-User Query
-   ↓
-Password Gate
-   ↓
-Query Classifier
-   ├── Rule-based (keyword match)
-   └── Semantic (embedding similarity)
-   ↓
-FAISS Vector Search
-   ↓
-Two-Stage Retrieval
-   ├── Metadata Filter + Threshold + Top-K
-   └── Fallback Global Search (if empty)
-   ↓
-Context Builder
-   ↓
-LLM Generation
-   ↓
-Answer
+1. User Query
+
+2. Password Gate
+
+3. Query Classifier
+
+-   Rule-based (keyword match)
+
+-   Semantic (embedding similarity)
+
+4. FAISS Vector Search
+
+-   FLATIP
+-   FLAT as index method
+-   IP (Inner Product) as similarity search method
+
+6. Two-Stage Retrieval
+
+-   Metadata Filter + Threshold + Top-K
+
+-   Fallback Global Search (if empty)
+
+6. Context Builder
+
+7. LLM Generation
+
+8. Answer
 
 ------------------------------------------------------------------------
 
