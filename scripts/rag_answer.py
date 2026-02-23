@@ -1,12 +1,15 @@
 import sys
 from pathlib import Path
-from rag_core import answer_query
+from scripts.rag_core import answer_query
 
-OUTPUT_FILE = Path("rag_answer.txt")
+# Project root detection for stable output path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+OUTPUT_FILE = PROJECT_ROOT / "rag_answer.txt"
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python scripts/rag_answer.py \"your question\"")
+        print("Usage: python -m scripts.rag_answer \"your question\"")
         sys.exit(1)
 
     query = sys.argv[1]
